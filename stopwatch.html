@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스탑워치</title>
+<style>
+  :root { --text:#f4f8ff; --muted:#aab9d4; --accent:#ffb347; --stop:#f9a825; --line:rgba(255,255,255,.14); }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; }
+  body { display:flex; align-items:center; justify-content:center; background:#0b1530; color:var(--text); font-family:'Segoe UI','Malgun Gothic',sans-serif; padding:16px; overflow:hidden; }
+
+  /* 배경 */
+  #scene { position:fixed; inset:0; width:100%; height:100%; z-index:0; }
+  #snow { position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+  .smoke { animation:rise 5s ease-in infinite; opacity:0; }
+  .smoke:nth-of-type(2) { animation-delay:1.6s; }
+  .smoke:nth-of-type(3) { animation-delay:3.2s; }
+  @keyframes rise { 0%{transform:translate(0,0) scale(.6);opacity:.6} 100%{transform:translate(28px,-90px) scale(1.8);opacity:0} }
+  .glow { animation:flicker 3s ease-in-out infinite alternate; }
+  @keyframes flicker { from{opacity:.85} to{opacity:1} }
+
+  /* 스탑워치 카드 */
+  .card { position:relative; z-index:2; width:100%; max-width:400px; padding:50px 26px 30px; border-radius:22px;
+          background:rgba(12,20,45,.42); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+          border:1px solid var(--line); box-shadow:0 10px 40px rgba(0,0,0,.45); }
+  .time { font-size:clamp(42px,12vw,60px); font-weight:600; text-align:center; font-variant-numeric:tabular-nums; letter-spacing:1px; text-shadow:0 0 18px rgba(170,200,255,.45); }
+  .time small { font-size:.5em; color:var(--muted); }
+  .btns { display:flex; gap:12px; margin-top:24px; }
+  button { flex:1; padding:14px; font-size:16px; font-weight:600; border:0; border-radius:12px; cursor:pointer; background:rgba(255,255,255,.14); color:var(--text); transition:filter .15s; }
+  button:hover:not(:disabled) { filter:brightness(1.2); }
+  button:disabled { opacity:.35; cursor:not-allowed; }
+  #start { background:#d32f2f; color:#fff; }
+  #start.running { background:#f9a825; color:#2a1a00; }
+  #reset:not(:disabled) { background:#2e7d32; color:#fff; }
+  .laps { margin-top:20px; max-height:200px; overflow-y:auto; }
+  .lap { display:flex; justify-content:space-between; padding:10px 4px; border-top:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  .lap span:first-child { color:var(--muted); }
+  .hint { text-align:center; color:var(--muted); font-size:12px; margin-top:16px; }
+
+  /* 크리스마스 장식 */
+  .tw { animation:twinkle 1.8s ease-in-out infinite alternate; }
+  @keyframes twinkle { from{opacity:.35} to{opacity:1} }
+  .pile { position:absolute; left:-8px; right:-8px; bottom:calc(100% - 16px); height:18px; pointer-events:none; transition:height 1s linear; filter:drop-shadow(0 -2px 6px rgba(200,220,255,.4)); }
+  .pile svg { width:100%; height:100%; display:block; }
+  .lights { position:absolute; top:10px; left:14px; right:14px; height:26px; display:flex; justify-content:space-between; pointer-events:none; }
+  .lights::before { content:''; position:absolute; top:3px; left:0; right:0; height:10px; border-bottom:2px solid #2d4a35; border-radius:0 0 50% 50% / 0 0 100% 100%; }
+  .lights i { position:relative; width:10px; height:14px; margin-top:8px; border-radius:50% 50% 45% 45%; animation:twinkle 1.4s ease-in-out infinite alternate; }
+  .lights i:nth-child(4n+1) { background:#ff5252; box-shadow:0 0 10px 3px rgba(255,82,82,.7); }
+  .lights i:nth-child(4n+2) { background:#ffd54f; box-shadow:0 0 10px 3px rgba(255,213,79,.7); animation-delay:.3s; }
+  .lights i:nth-child(4n+3) { background:#66bb6a; box-shadow:0 0 10px 3px rgba(102,187,106,.7); animation-delay:.6s; }
+  .lights i:nth-child(4n) { background:#64b5f6; box-shadow:0 0 10px 3px rgba(100,181,246,.7); animation-delay:.9s; }
+  .xmas { text-align:center; font-size:14px; letter-spacing:2px; color:#ffd7d7; margin-bottom:6px; }
+  .card { border-color:rgba(255,120,120,.35); }
+</style>
+</head>
+<body>
+
+<!-- 겨울 오두막 배경 -->
+<svg id="scene" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#050b1f"/>
+      <stop offset=".6" stop-color="#1b2f5e"/>
+      <stop offset="1" stop-color="#3d5a92"/>
+    </linearGradient>
+    <radialGradient id="winGlow"><stop offset="0" stop-color="#ffcf6b" stop-opacity=".7"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient>
+    <radialGradient id="moonGlow"><stop offset="0" stop-color="#fff6d6" stop-opacity=".5"/><stop offset="1" stop-color="#fff6d6" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1000" height="600" fill="url(#sky)"/>
+  <!-- 별 -->
+  <g fill="#fff" opacity=".8">
+    <circle cx="80" cy="60" r="1.5"/><circle cx="190" cy="120" r="1.2"/><circle cx="300" cy="50" r="1.6"/>
+    <circle cx="430" cy="100" r="1.2"/><circle cx="520" cy="40" r="1.5"/><circle cx="640" cy="90" r="1.2"/>
+    <circle cx="760" cy="55" r="1.6"/><circle cx="880" cy="130" r="1.3"/><circle cx="950" cy="45" r="1.2"/>
+    <circle cx="140" cy="200" r="1"/><circle cx="560" cy="170" r="1"/><circle cx="820" cy="210" r="1"/>
+  </g>
+  <!-- 달 -->
+  <circle cx="860" cy="100" r="80" fill="url(#moonGlow)"/>
+  <circle cx="860" cy="100" r="32" fill="#fff6d6"/>
+  <!-- 먼 산 -->
+  <path d="M0 400 L130 300 L230 380 L360 270 L500 390 L640 300 L780 380 L900 310 L1000 380 L1000 600 L0 600Z" fill="#5a73a8"/>
+  <path d="M0 440 L120 380 L260 430 L400 360 L560 440 L700 380 L860 440 L1000 400 L1000 600 L0 600Z" fill="#8ba2cf"/>
+  <!-- 눈 덮인 언덕 -->
+  <path d="M0 480 Q250 440 500 485 T1000 470 L1000 600 L0 600Z" fill="#dfe8f7"/>
+  <path d="M0 540 Q300 505 620 545 T1000 530 L1000 600 L0 600Z" fill="#f4f8ff"/>
+
+  <!-- 소나무 (왼쪽) -->
+  <g>
+    <rect x="96" y="500" width="10" height="28" fill="#4a3320"/>
+    <path d="M101 380 L60 460 L82 460 L48 515 L154 515 L120 460 L142 460Z" fill="#1f4a3a"/>
+    <path d="M101 380 L82 415 L120 415Z M101 420 L70 462 L132 462Z" fill="#f4f8ff" opacity=".9"/>
+    <rect x="196" y="515" width="8" height="24" fill="#4a3320"/>
+    <path d="M200 420 L168 485 L186 485 L160 530 L240 530 L214 485 L232 485Z" fill="#265a47"/>
+    <path d="M200 420 L184 450 L216 450Z M200 458 L176 487 L224 487Z" fill="#f4f8ff" opacity=".9"/>
+  </g>
+
+  <!-- 오두막 -->
+  <g transform="translate(500 545) scale(1.8) translate(-755 -522)" opacity=".4">
+    <!-- 굴뚝 -->
+    <rect x="788" y="360" width="22" height="50" fill="#5b3a29"/>
+    <rect x="784" y="354" width="30" height="10" fill="#f4f8ff"/>
+    <!-- 연기 -->
+    <circle class="smoke" cx="799" cy="345" r="9" fill="#cfd8ea"/>
+    <circle class="smoke" cx="799" cy="345" r="9" fill="#cfd8ea"/>
+    <circle class="smoke" cx="799" cy="345" r="9" fill="#cfd8ea"/>
+    <!-- 벽 -->
+    <rect x="660" y="410" width="190" height="110" fill="#7a4a2b"/>
+    <g stroke="#5b3720" stroke-width="3">
+      <line x1="660" y1="436" x2="850" y2="436"/><line x1="660" y1="462" x2="850" y2="462"/>
+      <line x1="660" y1="488" x2="850" y2="488"/>
+    </g>
+    <!-- 지붕 -->
+    <path d="M640 418 L755 330 L870 418Z" fill="#8a3b2e"/>
+    <path d="M640 418 L755 330 L870 418 L858 418 L755 342 L652 418Z" fill="#f4f8ff"/>
+    <path d="M652 418 Q680 432 706 420 Q730 434 755 420 Q780 434 806 420 Q832 432 858 418 L870 418 L640 418Z" fill="#f4f8ff"/>
+    <!-- 창문 -->
+    <circle cx="710" cy="466" r="55" fill="url(#winGlow)" class="glow"/>
+    <rect x="688" y="446" width="44" height="40" fill="#ffcf6b" stroke="#4a2a14" stroke-width="4" class="glow"/>
+    <line x1="710" y1="446" x2="710" y2="486" stroke="#4a2a14" stroke-width="3"/>
+    <line x1="688" y1="466" x2="732" y2="466" stroke="#4a2a14" stroke-width="3"/>
+    <!-- 문 -->
+    <rect x="778" y="450" width="42" height="70" rx="3" fill="#4a2a14"/>
+    <circle cx="812" cy="486" r="3" fill="#ffcf6b"/>
+    <!-- 문 앞 불빛 -->
+    <ellipse cx="760" cy="522" rx="90" ry="9" fill="#ffcf6b" opacity=".18"/>
+  </g>
+
+  <!-- 크리스마스 장식 -->
+  <defs><polygon id="star" points="101,366 104,375 113,375 106,381 108,390 101,385 94,390 96,381 89,375 98,375" fill="#ffd54f"/></defs>
+  <g>
+    <!-- 트리 별 -->
+    <use href="#star"/>
+    <polygon points="200,408 202,414 208,414 203,418 205,424 200,420 195,424 197,418 192,414 198,414" fill="#ffd54f"/>
+    <use href="#star" transform="translate(825,4)"/>
+    <!-- 트리 오너먼트 -->
+    <circle class="tw" cx="88" cy="470" r="4.5" fill="#ff5252"/><circle class="tw" style="animation-delay:.5s" cx="115" cy="490" r="4.5" fill="#64b5f6"/>
+    <circle class="tw" style="animation-delay:.9s" cx="78" cy="505" r="4.5" fill="#ffd54f"/><circle class="tw" style="animation-delay:.3s" cx="130" cy="505" r="4.5" fill="#ff5252"/>
+    <circle class="tw" style="animation-delay:.7s" cx="101" cy="440" r="4" fill="#ffd54f"/><circle class="tw" style="animation-delay:.2s" cx="101" cy="508" r="4" fill="#64b5f6"/>
+    <circle class="tw" cx="186" cy="498" r="4" fill="#ffd54f"/><circle class="tw" style="animation-delay:.6s" cx="218" cy="515" r="4" fill="#ff5252"/>
+    <circle class="tw" style="animation-delay:.4s" cx="198" cy="465" r="3.5" fill="#64b5f6"/>
+    <circle class="tw" cx="910" cy="470" r="4.5" fill="#ff5252"/><circle class="tw" style="animation-delay:.5s" cx="944" cy="488" r="4.5" fill="#ffd54f"/>
+    <circle class="tw" style="animation-delay:.8s" cx="900" cy="500" r="4.5" fill="#64b5f6"/><circle class="tw" style="animation-delay:.3s" cx="926" cy="432" r="4" fill="#ff5252"/>
+  </g>
+  <g transform="translate(500 545) scale(1.8) translate(-755 -522)" opacity=".55">
+    <!-- 처마 전구 -->
+    <g>
+      <circle class="tw" cx="650" cy="423" r="4" fill="#ff5252"/><circle class="tw" style="animation-delay:.3s" cx="680" cy="428" r="4" fill="#ffd54f"/>
+      <circle class="tw" style="animation-delay:.6s" cx="710" cy="426" r="4" fill="#66bb6a"/><circle class="tw" style="animation-delay:.9s" cx="740" cy="428" r="4" fill="#64b5f6"/>
+      <circle class="tw" cx="770" cy="426" r="4" fill="#ff5252"/><circle class="tw" style="animation-delay:.3s" cx="800" cy="428" r="4" fill="#ffd54f"/>
+      <circle class="tw" style="animation-delay:.6s" cx="830" cy="426" r="4" fill="#66bb6a"/><circle class="tw" style="animation-delay:.9s" cx="860" cy="423" r="4" fill="#64b5f6"/>
+      <circle class="tw" style="animation-delay:.2s" cx="672" cy="390" r="3.5" fill="#ffd54f"/><circle class="tw" style="animation-delay:.7s" cx="705" cy="364" r="3.5" fill="#ff5252"/>
+      <circle class="tw" style="animation-delay:.4s" cx="838" cy="390" r="3.5" fill="#66bb6a"/>
+    </g>
+    <!-- 문 리스 -->
+    <circle cx="799" cy="468" r="10" fill="none" stroke="#2e7d32" stroke-width="5"/>
+    <circle cx="799" cy="458" r="3.5" fill="#ff5252"/>
+    <!-- 선물 상자 -->
+    <rect x="828" y="500" width="24" height="20" fill="#d32f2f"/><rect x="838" y="500" width="4" height="20" fill="#ffd54f"/><rect x="828" y="508" width="24" height="4" fill="#ffd54f"/>
+    <rect x="698" y="502" width="22" height="18" fill="#1e88e5"/><rect x="707" y="502" width="4" height="18" fill="#fff"/><rect x="698" y="509" width="22" height="4" fill="#fff"/>
+    <rect x="722" y="508" width="16" height="12" fill="#43a047"/><rect x="728" y="508" width="4" height="12" fill="#ffd54f"/>
+  </g>
+
+  <!-- 소나무 (오른쪽) -->
+  <g>
+    <rect x="921" y="490" width="10" height="30" fill="#4a3320"/>
+    <path d="M926 370 L888 450 L908 450 L876 508 L976 508 L944 450 L964 450Z" fill="#1f4a3a"/>
+    <path d="M926 370 L908 405 L944 405Z M926 412 L896 452 L956 452Z" fill="#f4f8ff" opacity=".9"/>
+  </g>
+</svg>
+
+<canvas id="snow"></canvas>
+
+<div class="card">
+  <div class="pile" id="pile">
+    <svg viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 40 L0 26 Q14 6 44 18 Q74 -2 112 14 Q150 -4 190 12 Q230 -2 270 14 Q310 0 346 16 Q384 6 400 24 L400 40Z" fill="#f4f8ff"/>
+      <path d="M30 40 Q36 30 42 40Z M170 40 Q176 28 182 40Z M300 40 Q306 32 312 40Z" fill="#f4f8ff"/>
+    </svg>
+  </div>
+  <div class="lights" id="lights"></div>
+  <div class="xmas">🎄 MERRY CHRISTMAS 🎅</div>
+  <div class="time" id="display">00:00:00<small>.00</small></div>
+  <div class="btns">
+    <button id="lap" disabled>랩</button>
+    <button id="start">시작</button>
+    <button id="reset" disabled>초기화</button>
+  </div>
+  <div class="laps" id="laps"></div>
+  <div class="hint">단축키: 스페이스 = 시작/정지, L = 랩, R = 초기화</div>
+</div>
+
+<script>
+  /* ---------- 눈 내리는 효과 ---------- */
+  const cv = document.getElementById('snow'), ctx = cv.getContext('2d');
+  let W, H, flakes = [];
+  function resize() {
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    const n = Math.min(220, Math.floor(W * H / 6000));
+    flakes = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 2.6 + .8, s: Math.random() * 1 + .5,
+      p: Math.random() * Math.PI * 2, d: Math.random() * .02 + .005
+    }));
+  }
+  function snow() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    for (const f of flakes) {
+      f.y += f.s; f.p += f.d; f.x += Math.sin(f.p) * .6;
+      if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; }
+      if (f.x > W + 5) f.x = -5; else if (f.x < -5) f.x = W + 5;
+      ctx.globalAlpha = .55 + f.r / 7;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+    }
+    requestAnimationFrame(snow);
+  }
+  addEventListener('resize', resize); resize(); snow();
+
+  /* ---------- 크리스마스 전구 & 쌓이는 눈 ---------- */
+  document.getElementById('lights').innerHTML = '<i></i>'.repeat(15);
+  const pile = document.getElementById('pile'), t0 = performance.now();
+  setInterval(() => {
+    const sec = (performance.now() - t0) / 1000;
+    pile.style.height = Math.min(48, 18 + sec * 0.5) + 'px'; // 시간이 지날수록 눈이 쌓임 (최대 48px)
+  }, 1000);
+
+  /* ---------- 스탑워치 ---------- */
+  const $ = id => document.getElementById(id);
+  const display = $('display'), startBtn = $('start'), lapBtn = $('lap'), resetBtn = $('reset'), lapsEl = $('laps');
+  let running = false, startTime = 0, elapsed = 0, raf = null, lastLap = 0, laps = [];
+
+  const pad = n => String(n).padStart(2, '0');
+  function fmt(ms) {
+    const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60,
+          m = Math.floor(ms / 60000) % 60, h = Math.floor(ms / 3600000);
+    return { main: `${pad(h)}:${pad(m)}:${pad(s)}`, cs: pad(cs) };
+  }
+  const fmtStr = ms => { const f = fmt(ms); return `${f.main}.${f.cs}`; };
+  const now = () => running ? elapsed + performance.now() - startTime : elapsed;
+
+  function render() {
+    const f = fmt(now());
+    display.innerHTML = `${f.main}<small>.${f.cs}</small>`;
+    if (running) raf = requestAnimationFrame(render);
+  }
+  function toggle() {
+    if (!running) {
+      startTime = performance.now(); running = true;
+      startBtn.textContent = '정지'; startBtn.classList.add('running');
+      lapBtn.disabled = false; resetBtn.disabled = false;
+      raf = requestAnimationFrame(render);
+    } else {
+      elapsed += performance.now() - startTime; running = false;
+      cancelAnimationFrame(raf); render();
+      startBtn.textContent = '계속'; startBtn.classList.remove('running');
+      lapBtn.disabled = true;
+    }
+  }
+  function lap() {
+    if (!running) return;
+    const t = now();
+    laps.unshift({ n: laps.length + 1, split: t - lastLap, total: t });
+    lastLap = t;
+    lapsEl.innerHTML = laps.map(l => `<div class="lap"><span>랩 ${l.n}</span><span>${fmtStr(l.split)}</span><span>${fmtStr(l.total)}</span></div>`).join('');
+  }
+  function reset() {
+    running = false; cancelAnimationFrame(raf);
+    elapsed = 0; lastLap = 0; laps = []; lapsEl.innerHTML = '';
+    startBtn.textContent = '시작'; startBtn.classList.remove('running');
+    lapBtn.disabled = true; resetBtn.disabled = true; render();
+  }
+
+  startBtn.onclick = toggle; lapBtn.onclick = lap; resetBtn.onclick = reset;
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); toggle(); }
+    else if (e.key.toLowerCase() === 'l') lap();
+    else if (e.key.toLowerCase() === 'r') reset();
+  });
+</script>
+</body>
+</html>
