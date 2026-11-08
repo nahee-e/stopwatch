@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>피자 인사이트 30초</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2B1B17;--cream:#FFF4E0;--red:#E8442E;--cheese:#FFC53D;--crust:#E9A54B;--green:#3BA55C;--blue:#5DA9E9;--purple:#8E5CF0}
+html,body{margin:0;height:100%;background:#1d1411;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);background:var(--cream);overflow:hidden;--b1:#FFE3A8;--b2:#FFF4E0;font-family:'Jua',sans-serif}
+#burst{position:absolute;left:50%;top:50%;width:2600px;height:2600px;margin:-1300px 0 0 -1300px;background:repeating-conic-gradient(var(--b1) 0 9deg,var(--b2) 9deg 18deg);animation:spin 60s linear infinite}
+#dots{position:absolute;inset:0;background-image:radial-gradient(rgba(43,27,23,.07) 2px,transparent 2.6px);background-size:22px 22px}
+#scenes,.scene{position:absolute;inset:0}
+#scenes{z-index:10}
+#prog{position:absolute;left:0;top:0;height:8px;width:100%;background:rgba(43,27,23,.15);z-index:45}
+#prog i{display:block;height:100%;width:0;background:var(--red)}
+#sub{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);max-width:1120px;width:max-content;background:rgba(43,27,23,.88);color:#fff;font-size:25px;padding:9px 26px;border-radius:30px;text-align:center;z-index:40;opacity:0;transition:opacity .3s}
+#wipe{position:absolute;top:-20%;bottom:-20%;left:-60%;right:-60%;background:linear-gradient(90deg,var(--cheese) 0 10%,var(--ink) 10% 90%,var(--red) 90%);transform:translateX(-130%) skewX(-15deg);z-index:50;pointer-events:none}
+#wipe.go{animation:wipe .7s cubic-bezier(.7,0,.3,1)}
+#start{position:absolute;inset:0;z-index:60;display:grid;place-items:center;background:rgba(43,27,23,.6);text-align:center;color:#fff}
+#start button{font-family:'Black Han Sans',sans-serif;font-size:58px;padding:22px 64px;border-radius:999px;border:6px solid var(--ink);background:var(--cheese);box-shadow:0 10px 0 var(--ink);cursor:pointer;color:var(--ink)}
+#start button:active{transform:translateY(6px);box-shadow:0 4px 0 var(--ink)}
+#start p{font-size:24px;margin:26px 0 0}
+
+.t{position:absolute;font-family:'Black Han Sans',sans-serif;color:#fff;white-space:nowrap;line-height:1.05;
+ text-shadow:4px 4px 0 var(--ink),-4px 4px 0 var(--ink),4px -4px 0 var(--ink),-4px -4px 0 var(--ink),0 4px 0 var(--ink),0 -4px 0 var(--ink),4px 0 0 var(--ink),-4px 0 0 var(--ink),0 11px 0 var(--ink)}
+.cap{left:0;right:0;text-align:center}
+.ch{display:inline-block}
+.sp{display:inline-block;width:.28em}
+.tb{transform-box:fill-box;transform-origin:center}
+.chip{position:absolute;left:56px;top:58px;width:104px;height:104px;border-radius:50%;background:var(--red);border:6px solid var(--ink);box-shadow:0 8px 0 var(--ink);display:grid;place-items:center;font-family:'Black Han Sans';font-size:46px;color:#fff;box-sizing:border-box}
+.pill{position:absolute;background:#fff;border:5px solid var(--ink);border-radius:999px;padding:6px 26px;font-size:34px;color:var(--ink);box-shadow:0 6px 0 var(--ink)}
+.box{position:absolute;width:200px;height:44px;background:#fff;border:6px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-family:'Black Han Sans';font-size:24px;color:var(--red);letter-spacing:5px;box-shadow:inset 0 -10px 0 #FFD9D2}
+.note{position:absolute;right:34px;top:26px;font-size:20px;color:var(--ink);opacity:.7}
+.store{position:absolute;top:300px;width:120px;text-align:center}
+.store .lbl{font-size:25px;color:var(--ink);margin-top:2px}
+.store.sad .lbl{color:var(--red)}
+.cloud{position:absolute;top:-80px;left:0}
+.rain line{animation:rain .55s linear infinite}
+.rain line:nth-child(2){animation-delay:.18s}.rain line:nth-child(3){animation-delay:.36s}
+.ring{position:absolute;left:-12px;top:-14px;width:136px;height:196px}
+.ring i{position:absolute;inset:0;border:5px dashed var(--red);border-radius:22px;animation:pulse .8s ease-in-out infinite}
+.ice{color:#BDE7FF;position:relative}
+.cf{position:absolute;top:0;border:3px solid var(--ink);border-radius:3px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes wipe{from{transform:translateX(-130%) skewX(-15deg)}to{transform:translateX(130%) skewX(-15deg)}}
+@keyframes pop{0%{transform:scale(0) rotate(-18deg);opacity:0}60%{transform:scale(1.22) rotate(5deg);opacity:1}82%{transform:scale(.94) rotate(-2deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes drop{0%{transform:translateY(-240px) scaleY(1.3);opacity:0}55%{transform:translateY(0) scale(1.22,.72);opacity:1}75%{transform:translateY(-26px) scale(.95,1.07)}100%{transform:none}}
+@keyframes stamp{0%{transform:scale(3.2) rotate(-14deg);opacity:0}50%{transform:scale(.9) rotate(-4deg);opacity:1}70%{transform:scale(1.06) rotate(-4deg)}100%{transform:scale(1) rotate(-4deg)}}
+@keyframes stampSpin{0%{transform:scale(4) rotate(-200deg);opacity:0}60%{transform:scale(.85) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+@keyframes shake{0%,100%{transform:rotate(-4deg)}20%{transform:translateX(-12px) rotate(-7deg)}40%{transform:translateX(12px) rotate(-1deg)}60%{transform:translateX(-7px) rotate(-6deg)}80%{transform:translateX(7px) rotate(-3deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes chomp{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.12)}}
+@keyframes eat{to{transform:scale(0) rotate(70deg);opacity:0}}
+@keyframes slideIn{from{transform:translateX(-520px)}to{transform:none}}
+@keyframes fall{0%{transform:none}25%{transform:translate(12px,-34px) rotate(-10deg)}100%{transform:translate(260px,520px) rotate(85deg);opacity:0}}
+@keyframes grow{to{transform:scale(1.45)}}
+@keyframes shiver{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
+@keyframes rain{from{transform:translateY(0);opacity:1}to{transform:translateY(14px);opacity:0}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes popfade{0%{transform:scale(0) rotate(-15deg);opacity:0}30%{transform:scale(1.2) rotate(6deg);opacity:1}70%{opacity:1}100%{transform:scale(1) translateY(-34px);opacity:0}}
+@keyframes confetti{from{transform:translateY(-60px) rotate(var(--r))}to{transform:translateY(820px) rotate(calc(var(--r) + 720deg))}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="burst"></div>
+  <div id="dots"></div>
+  <div id="scenes"></div>
+  <div id="prog"><i></i></div>
+  <div id="sub"></div>
+  <div id="wipe"></div>
+  <div id="start"><div><button id="play">▶ 재생</button><p id="vinfo">소리를 켜고 눌러 주세요 · 30초</p></div></div>
+</div>
+<script>
+/* ---------- 헬퍼 ---------- */
+const E='cubic-bezier(.34,1.56,.64,1)';
+const A=(n,d,del,e=E,it='1',fill='both')=>`${n} ${d}s ${e} ${(+del).toFixed(2)}s ${it} ${fill}`;
+function kt(segs,o={}){
+  if(typeof segs==='string')segs=[[segs]];
+  const {d=0,step=.05,anim='pop',dur=.55}=o;let i=0,h='';
+  for(const [txt,col] of segs){for(const c of txt){
+    if(c===' '){h+='<span class="sp"></span>';continue}
+    const st=(col?`color:${col};`:'')+`animation:${A(anim,dur,d+i*step)}`;
+    h+=`<span class="ch" style="${st}">${c}</span>`;i++;}}
+  return h;
+}
+const chip=n=>`<div class="chip" style="animation:${A('pop',.5,.05)}">${n}</div>`;
+const wrap=(x,y,outer,inner,html)=>`<div style="position:absolute;left:${x}px;top:${y}px;animation:${outer}"><div style="animation:${inner}">${html}</div></div>`;
+const spark=(x,y,d)=>wrap(x,y,A('pop',.5,d),'spin 3s linear infinite',`<div class="t" style="position:relative;font-size:54px;color:var(--cheese)">✦</div>`);
+
+/* ---------- 캐릭터 (SVG) ---------- */
+function mascot(w,wink){return `<svg width="${w}" height="${w}" viewBox="-120 -120 240 240"><g stroke="#2B1B17" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<circle r="104" fill="#E9A54B"/><circle r="84" fill="#FFC53D"/>
+<circle cx="-50" cy="-50" r="15" fill="#E8442E"/><circle cx="50" cy="-52" r="13" fill="#E8442E"/><circle cx="-40" cy="62" r="12" fill="#E8442E"/><circle cx="44" cy="60" r="13" fill="#E8442E"/><circle cx="2" cy="-70" r="8" fill="#3BA55C"/>
+<g class="tb" style="animation:blink 3.2s infinite">${wink?'':'<ellipse cx="-30" cy="-10" rx="15" ry="19" fill="#fff"/><circle cx="-27" cy="-7" r="8" fill="#2B1B17" stroke="none"/>'}<ellipse cx="30" cy="-10" rx="15" ry="19" fill="#fff"/><circle cx="33" cy="-7" r="8" fill="#2B1B17" stroke="none"/></g>
+${wink?'<path d="M-44 -8 Q-30 -22 -16 -8" fill="none"/>':''}
+<path d="M-30 22 Q0 58 30 22 Z" fill="#fff"/>
+<ellipse cx="-56" cy="16" rx="12" ry="7" fill="#FF8A80" stroke="none"/><ellipse cx="56" cy="16" rx="12" ry="7" fill="#FF8A80" stroke="none"/>
+</g></svg>`}
+
+function tag(){return `<svg width="200" height="140" viewBox="0 0 160 112"><g stroke="#2B1B17" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+<path d="M42 6 H146 Q154 6 154 14 V98 Q154 106 146 106 H42 L6 56 Z" fill="#FFC53D"/><circle cx="34" cy="56" r="8" fill="#FFF4E0"/>
+<circle cx="84" cy="44" r="6" fill="#2B1B17"/><circle cx="118" cy="44" r="6" fill="#2B1B17"/>
+<path d="M86 60 Q101 76 116 60" fill="#fff"/></g>
+<text x="101" y="98" text-anchor="middle" font-family="Black Han Sans" font-size="20" fill="#2B1B17">₩ UP</text></svg>`}
+
+function monster(){return `<svg width="220" height="220" viewBox="-110 -110 220 220"><g stroke="#2B1B17" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<circle r="92" fill="#8E5CF0"/>
+<g style="animation:chomp .3s ease-in-out infinite"><path d="M-6 8 L80 -30 L80 46 Z" fill="#2B1B17"/></g>
+<circle cx="-12" cy="-46" r="21" fill="#fff"/><circle cx="-4" cy="-44" r="9" fill="#2B1B17" stroke="none"/>
+<path d="M-42 -78 L10 -64" fill="none"/>
+<path d="M-60 40 Q-50 60 -34 52" fill="none"/></g></svg>`}
+
+function pizza(r,eat){let s='';
+  const P=(rr,a)=>`${(rr*Math.cos(a)).toFixed(1)} ${(rr*Math.sin(a)).toFixed(1)}`;
+  for(let i=0;i<8;i++){const a0=i*Math.PI/4,a1=(i+1)*Math.PI/4,am=(a0+a1)/2,ri=r-20;
+    const st=eat[i]!=null?` style="animation:${A('eat',.35,eat[i],'ease-in')}"`:'';
+    s+=`<g class="tb"${st}><path d="M0 0 L${P(r,a0)} A${r} ${r} 0 0 1 ${P(r,a1)} Z" fill="#E9A54B"/><path d="M0 0 L${P(ri,a0)} A${ri} ${ri} 0 0 1 ${P(ri,a1)} Z" fill="#FFC53D" stroke="none"/><path d="M0 0 L${P(ri,a0)}" fill="none" stroke-width="3"/><circle cx="${(r*.56*Math.cos(am)).toFixed(1)}" cy="${(r*.56*Math.sin(am)).toFixed(1)}" r="${r*.12}" fill="#E8442E"/></g>`;}
+  return `<svg width="${2*r+20}" height="${2*r+20}" viewBox="${-r-10} ${-r-10} ${2*r+20} ${2*r+20}"><g stroke="#2B1B17" stroke-width="6" stroke-linejoin="round">${s}</g></svg>`}
+
+const CLOUD=`<svg width="120" height="84" viewBox="0 0 120 84"><g stroke="#2B1B17" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M30 54 Q12 54 15 38 Q18 23 36 25 Q42 7 64 9 Q85 9 89 25 Q107 25 105 41 Q103 54 88 54 Z" fill="#B0B6BD"/>
+<g class="rain"><line x1="44" y1="62" x2="40" y2="72"/><line x1="64" y1="62" x2="60" y2="72"/><line x1="84" y1="62" x2="80" y2="72"/></g></g></svg>`;
+function store(name,sad,i,d){
+  const roof=sad?'#9AA0A6':['#E8442E','#3BA55C','#5DA9E9','#8E5CF0','#FF8A3D'][i%5],body=sad?'#DDE0E4':'#fff';
+  const svg=`<svg width="120" height="140" viewBox="0 0 120 140"><g stroke="#2B1B17" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+<rect x="20" y="54" width="80" height="78" rx="6" fill="${body}"/><path d="M8 60 L60 14 L112 60 Z" fill="${roof}"/>
+<rect x="48" y="98" width="24" height="34" rx="3" fill="${roof}"/>
+<circle cx="44" cy="74" r="5" fill="#2B1B17"/><circle cx="76" cy="74" r="5" fill="#2B1B17"/>
+<path d="${sad?'M50 91 Q60 83 70 91':'M48 84 Q60 95 72 84'}" fill="none"/></g></svg>`;
+  return `<div class="store${sad?' sad':''}" style="left:${55+i*130}px;animation:${A('drop',.6,d)}">
+${sad?`<div class="ring" style="animation:${A('pop',.5,d+1.5)}"><i></i></div><div class="cloud" style="animation:${A('pop',.5,d+1.3)}">${CLOUD}</div>`:''}
+<div style="animation:${sad?'shiver .16s linear infinite':'float 1.6s ease-in-out infinite'};animation-delay:${(i*.13).toFixed(2)}s">${svg}</div>
+<div class="lbl">${name}</div></div>`;
+}
+function confetti(){let s='';const C=['#E8442E','#FFC53D','#3BA55C','#5DA9E9','#8E5CF0'];
+  for(let i=0;i<36;i++){const x=Math.random()*1280|0,d=(.2+Math.random()*1.5).toFixed(2),du=(1.8+Math.random()*1.4).toFixed(2),w=10+Math.random()*12|0;
+    s+=`<i class="cf" style="left:${x}px;width:${w}px;height:${w*1.6|0}px;background:${C[i%5]};--r:${Math.random()*360|0}deg;animation:confetti ${du}s linear ${d}s both"></i>`}
+  return s}
+
+/* ---------- 장면 ---------- */
+const STORES=['강남','홍대','영통','부평','둔산','동성로','서면','충장로','연동'];
+const SC=[
+ {t:0, b:['#FFE3A8','#FFF4E0'],
+  say:'아홉 개 매장, 칠 년의 데이터. 핵심은 세 가지입니다.',
+  sub:'9개 매장, 7년의 데이터. 핵심은 세 가지입니다.',
+  f:()=>`
+${wrap(150,200,A('drop',.7,.1),'float 2s ease-in-out infinite',mascot(320))}
+<div class="t" style="left:540px;top:205px;font-size:54px">${kt('9개 매장 · 7년의 데이터',{d:.5,step:.045})}</div>
+<div class="t" style="left:540px;top:330px;font-size:96px">${kt('핵심은',{d:1.5,step:.08})}</div>
+<div class="t" style="left:852px;top:262px;font-size:230px;color:var(--cheese);animation:${A('stampSpin',.7,2.0)}">3</div>
+<div class="t" style="left:1005px;top:330px;font-size:96px">${kt('가지',{d:2.4,step:.08})}</div>
+${spark(505,130,.9)}${spark(1170,215,2.4)}${spark(760,520,2.6)}`},
+
+ {t:4, b:['#FFD0C4','#FFF0E8'],
+  say:'첫째, 성장의 엔진이 바뀌었습니다. 주문은 줄고, 가격이 매출을 끌었습니다.',
+  sub:'① 성장의 엔진이 바뀌었다 — 주문은 줄고, 가격이 매출을 끌었다',
+  f:()=>`${chip('01')}<div class="note">2024년 전년 대비 · 9개 매장 합계</div>
+<div class="t" style="left:190px;top:62px;font-size:64px">${kt('성장의 엔진이',{d:.2,step:.06})}</div>
+<div class="t" style="left:186px;top:140px;font-size:120px;color:var(--red);animation:${A('stamp',.55,1.0)},${A('shake',.4,1.55,'linear','1','forwards')}">바뀌었다!</div>
+<div class="pill" style="left:245px;top:290px;animation:${A('pop',.5,1.7)}">주문 수</div>
+<div class="box" style="left:230px;top:500px;animation:${A('drop',.5,1.9)}">PIZZA</div>
+<div class="box" style="left:230px;top:446px;animation:${A('drop',.5,2.05)}">PIZZA</div>
+<div style="position:absolute;left:230px;top:392px;animation:${A('drop',.5,2.2)}"><div class="box" style="left:0;top:0;animation:${A('fall',.9,3.3,'cubic-bezier(.5,0,.9,.6)')}">PIZZA</div></div>
+<div class="t" style="left:470px;top:380px;font-size:90px;color:var(--red);animation:${A('pop',.5,3.5)}">▼</div>
+<div class="t" style="left:455px;top:485px;font-size:56px;color:var(--red);animation:${A('pop',.5,3.7)}">-2.4%</div>
+<div class="pill" style="left:775px;top:280px;animation:${A('pop',.5,2.4)}">객단가</div>
+<div style="position:absolute;left:745px;top:400px;animation:${A('pop',.6,2.6)}"><div style="transform-origin:50% 100%;animation:${A('grow',.8,3.9)}">${tag()}</div></div>
+<div class="t" style="left:1000px;top:360px;font-size:90px;color:var(--green);animation:${A('pop',.5,4.2)}">▲</div>
+<div class="t" style="left:985px;top:465px;font-size:56px;color:var(--green);animation:${A('pop',.5,4.4)}">+8.1%</div>
+<div class="t cap" style="top:588px;font-size:46px">${kt([['주문은 줄고, '],['가격','var(--cheese)'],['으로 버틴 성장']],{d:4.7,step:.04})}</div>`},
+
+ {t:11.5, b:['#E3D6FF','#F6F0FF'],
+  say:'둘째, 객단가는 이십오 퍼센트 올랐지만, 이익률은 십칠 퍼센트에 멈췄습니다. 인건비가 성장을 먹었습니다.',
+  sub:'② 객단가 +25%에도 이익률은 17%에 멈췄다 — 인건비가 성장을 먹었다',
+  f:()=>`${chip('02')}<div class="note">2020 → 2026(1~8월) · 9개 매장 합계</div>
+<div class="t" style="left:190px;top:62px;font-size:64px">${kt([['객단가 '],['+25%','var(--green)']],{d:.2,step:.06})}</div>
+<div class="t" style="left:190px;top:150px;font-size:84px">${kt('이익률은',{d:.9,step:.06})}<span class="sp"></span><span class="ch ice" style="animation:${A('stamp',.5,1.5)}"><span class="ch" style="animation:shiver .12s linear 2s infinite">17%</span><span style="position:absolute;left:-30px;top:-34px;font-size:40px;animation:${A('pop',.4,2.0)}">❄</span><span style="position:absolute;right:-26px;top:-22px;font-size:32px;animation:${A('pop',.4,2.1)}">❄</span></span>${kt('에 멈췄다',{d:2.0,step:.06})}</div>
+<div style="position:absolute;left:290px;top:300px;animation:${A('slideIn',.6,2.3,'cubic-bezier(.2,.9,.3,1.2)')}">${monster()}</div>
+<div class="pill" style="left:322px;top:520px;background:var(--purple);color:#fff;animation:${A('pop',.5,2.6)}">인건비</div>
+<div style="position:absolute;left:560px;top:290px">${pizza(120,{4:3.2,3:3.8})}</div>
+<div class="t" style="left:515px;top:265px;font-size:58px;color:var(--cheese);animation:${A('popfade',.8,3.15,'ease-out')}">냠!</div>
+<div class="t" style="left:520px;top:480px;font-size:58px;color:var(--cheese);animation:${A('popfade',.8,3.75,'ease-out')}">냠!</div>
+<div class="pill" style="left:925px;top:300px;animation:${A('pop',.5,2.8)}">인건비율</div>
+<div class="t" data-count="24.5,29,3.0,2.0" style="left:905px;top:385px;font-size:96px;color:var(--red);animation:${A('pop',.5,2.9)}">24.5%</div>
+<div class="t" style="left:928px;top:500px;font-size:34px;animation:${A('pop',.5,3.0)}">2020 → 2026</div>
+<div class="t cap" style="top:592px;font-size:48px">${kt([['인건비가 성장을 '],['먹었다','var(--red)']],{d:5.0,step:.05})}</div>`},
+
+ {t:19, b:['#CFEAD6','#F0FAF2'],
+  say:'셋째, 격차는 상권이 아니라 사람입니다. 충장로와 연동, 두 매장에 오천만 원의 기회가 있습니다.',
+  sub:'③ 격차는 상권이 아니라 사람이다 — 충장로·연동, 5천만 원의 기회',
+  f:()=>`${chip('03')}<div class="note">2026년 1~8월 · 평균 영업이익률 17.4% 회복 시</div>
+<div class="t" style="left:190px;top:62px;font-size:62px">${kt('격차는 상권이 아니라',{d:.2,step:.05})}</div>
+<div class="t" style="left:186px;top:140px;font-size:112px;color:var(--red);animation:${A('stamp',.55,1.3)},${A('shake',.4,1.85,'linear','1','forwards')}">사람이다!</div>
+${STORES.map((n,i)=>store(n,i>=7,i,2.0+i*.09)).join('')}
+<div class="t cap" style="top:560px;font-size:46px">${kt([['충장로 · 연동','var(--red)'],[' 평균만 돼도']],{d:4.0,step:.04})}<span class="sp"></span><span class="ch" style="color:var(--cheese);font-size:58px;animation:${A('stamp',.5,4.8)}">+5천만 원</span></div>`},
+
+ {t:26.5, b:['#FFE08A','#FFF6D6'],
+  say:'주문을 살리고, 사람을 지켜라.',
+  sub:'주문을 살리고, 사람을 지켜라.',
+  f:()=>`
+<div class="t cap" style="top:170px;font-size:104px">${kt('주문을 살리고,',{d:.15,step:.06,anim:'drop'})}</div>
+<div class="t cap" style="top:320px;font-size:124px;color:var(--red);animation:${A('stamp',.55,1.0)}">사람을 지켜라!</div>
+${wrap(1050,470,A('pop',.6,.5),'float 1.6s ease-in-out infinite',mascot(170,true))}
+${confetti()}`},
+];
+const END=30;
+
+/* ---------- 음성 ---------- */
+let voice=null;
+function pickVoice(){
+  const vs=('speechSynthesis' in window)?speechSynthesis.getVoices():[];
+  const ko=vs.filter(v=>/^ko/i.test(v.lang));
+  voice=ko.find(v=>/Natural|Online|Neural/i.test(v.name))||ko.find(v=>/Google/i.test(v.name))||ko[0]||null;
+  document.getElementById('vinfo').textContent=voice?`음성: ${voice.name} · 30초`:'한국어 음성을 찾지 못했습니다 (자막으로 표시) · 30초';
+}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function speak(txt){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);
+  u.lang='ko-KR';if(voice)u.voice=voice;u.rate=1.12;u.pitch=1.05;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- 타임라인 ---------- */
+const $=id=>document.getElementById(id);
+const stage=$('stage'),scenes=$('scenes'),sub=$('sub'),wipe=$('wipe'),bar=$('prog').firstElementChild;
+let t0=0,cur=-1,swapT=0;
+function enter(i){
+  cur=i;const s=SC[i];speak(s.say);sub.textContent=s.sub;sub.style.opacity=1;
+  const swap=()=>{stage.style.setProperty('--b1',s.b[0]);stage.style.setProperty('--b2',s.b[1]);
+    scenes.innerHTML='';const d=document.createElement('div');d.className='scene';d.innerHTML=s.f();scenes.appendChild(d);swapT=performance.now();};
+  if(i===0)swap();else{wipe.classList.remove('go');void wipe.offsetWidth;wipe.classList.add('go');setTimeout(swap,340);}
+}
+function frame(now){
+  const t=(now-t0)/1000;
+  let i=0;for(let k=0;k<SC.length;k++)if(t>=SC[k].t)i=k;
+  if(i!==cur)enter(i);
+  bar.style.width=Math.min(t/END,1)*100+'%';
+  scenes.querySelectorAll('[data-count]').forEach(e=>{const [a,b,st,du]=e.dataset.count.split(',').map(Number);
+    const p=Math.min(Math.max(((now-swapT)/1000-st)/du,0),1);e.textContent=(a+(b-a)*(1-Math.pow(1-p,3))).toFixed(1)+'%';});
+  if(t>=END){sub.style.opacity=0;$('play').textContent='↻ 다시 보기';$('start').style.display='grid';return;}
+  requestAnimationFrame(frame);
+}
+function start(){$('start').style.display='none';cur=-1;scenes.innerHTML='';t0=performance.now();requestAnimationFrame(frame);}
+$('play').onclick=start;
+addEventListener('keydown',e=>{if(e.code==='Space'&&$('start').style.display!=='none'){e.preventDefault();start();}});
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>
